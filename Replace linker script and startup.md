@@ -2,12 +2,13 @@
 - [Zero to main()](https://interrupt.memfault.com/tag/zero-to-main/)
 - [Everything You Never Wanted To Know About Linker Script](https://mcyoung.xyz/2021/06/01/linker-script/)
 - [RM0351 Reference Manual](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
--
+- [DS10198 STM32L476RG Datasheet](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
 1111 0100 0000 0000
 plus 1011 1111 1111= 1+2+4+8+16+32+64+128+256+512+1024
 1111 1111 1111 1111
 ## Notes
-- Flash memory starts at 0x0800 0000 and ends at 0x0810 0000 (RM0351, 77) 
-- Flash memory divided into 2 banks. Each bank contains 256 pages, 2 KB each. (RM0351, 98)
-	- Each page is 8 rows of 256 bytes. This corresponds to 2048 bytes = 2KB
-	- Both banks collectively take up 1024 KB -> 0x0100 0000. That's why flash goes from 0x0800 0000 -> 0x0810 0000
+- Flash Memory Region starts at 0x0800 0000 and ends at 0x0810 0000 (RM0351, 77) 
+- The G in STM32L476RG means 1 MB flash (DS10198, 261) so the below info is assuming 1 MB dual bank flash organization
+- Flash memory is divided into 2 banks (RM0351, 98). Each bank has the following:
+	- A main memory block containing 256 pages of 2KB size (each page is 8 rows of 256 bytes -> 2KB). This starts at 0x0800 0000.
+	- Information block containing system memory (28 KB), OTP area (1KB, only for bank 1), and option bytes (16 bytes)
