@@ -3,9 +3,6 @@
 - [Everything You Never Wanted To Know About Linker Script](https://mcyoung.xyz/2021/06/01/linker-script/)
 - [RM0351 Reference Manual](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
 - [DS10198 STM32L476RG Datasheet](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
-1111 0100 0000 0000
-plus 1011 1111 1111= 1+2+4+8+16+32+64+128+256+512+1024
-1111 1111 1111 1111
 ## Notes
 
 ### Flash
@@ -20,3 +17,41 @@ plus 1011 1111 1111= 1+2+4+8+16+32+64+128+256+512+1024
 ### Assembly
 - STM32L476RG startup code uses ARM Cortex-M4 assembly
 - There's a strategy where you can loop by jumping to loop\<label\> and then if you want to loop then you bcc (branch if carry clear) to \<label\> 
+
+### Linker
+- `.` - Location Counter. It is a pointer to the current memory address in the linker script. 
+- `ALIGN(N)` - It is just a one-time rounding command that forces the location counter to be rounded up to the next multiple of N bytes. So if the counter is at 0x08000001 then ALIGN(4) will shift counter to 0x08000004.
+- `>` - It tells the linker to place a section into a specific memory region. 
+- `KEEP()` - Forces the linker to preserve a section in the final binary even if it appears unused by the software. So if I don't want something optimized out by the `--gc-sections` flag that I will inevitably use, I better wrap it in `KEEP()`.
+
+
+```
+// step by step example
+MEMORY
+{
+	FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
+	SRAM1 (rwx) : ORIGIN = 0x2000 0000, LENGTH = 96K
+}
+
+SECTIONS
+{
+    // first example bullet point starts here
+	.isr_vector :
+	{
+		. = ALIGN(4);
+	    KEEP(*(.isr_vector)) /* Startup code */
+	    . = ALIGN(4);
+	} >ROM
+	  
+	.text :
+	{
+		...
+	} >ROM
+}
+```
+- Before looking at any code inside {...}, the linker sees `>ROM`. Since `.isr_vector` is the very first section targeting ROM, the linker says, ok initialize `.` to the ORIGIN of ROM (0x0800 0000).
+	- Also note the `.` in `.isr_vector` is just GNU convention, it is not the location counter...
+- Now the linker goes inside the {...} and sees `. = ALIGN(4)` so the linker says, well `.` is at 0x0800 0000 which is already a multiple of 4 bytes so I don't gotta do anything.
+- Then the linker sees `KEEP(*(.isr_vector))`. So the linker searches through all `.o` files passed into the gcc link command for any section tagged with `.isr_vector` (It will probably be find something in the startup assembly code). Then the linker copies those raw bytes into 0x0800 0000 and increments `.` by the size of the vector table.
+- Then the linker sees `. = ALIGN(4)` and checks if `.` is aligned to a 4-byte boundary and if it isn't, then it rounds `.` up.
+- Now the linker closes `.isr_vector` and goes to the `.text :` block where it reads ` >ROM`, so the linker moves `.` to whever it ended off in `.isr_vector`
