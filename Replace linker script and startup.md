@@ -21,7 +21,7 @@
 ### Linker
 - `.` - Location Counter. It is a pointer to the current memory address in the linker script. 
 - `ALIGN(N)` - It is just a one-time rounding command that forces the location counter to be rounded up to the next multiple of N bytes. So if the counter is at 0x08000001 then ALIGN(4) will shift counter to 0x08000004.
-- `>` - It tells the linker to place a section into a specific memory region. 
+- `>` - It tells the linker to assign the memory region to the VMA. If an LMA is not explicitly declared using `AT>`, the linker defaults the LMA to equal the VMA. 
 - `KEEP()` - Forces the linker to preserve a section in the final binary even if it appears unused by the software. So if I don't want something optimized out by the `--gc-sections` flag that I will inevitably use, I better wrap it in `KEEP()`.
 
 
@@ -55,3 +55,27 @@ SECTIONS
 - Then the linker sees `KEEP(*(.isr_vector))`. So the linker searches through all `.o` files passed into the gcc link command for any section tagged with `.isr_vector` (It will probably be find something in the startup assembly code). Then the linker copies those raw bytes into 0x0800 0000 and increments `.` by the size of the vector table.
 - Then the linker sees `. = ALIGN(4)` and checks if `.` is aligned to a 4-byte boundary and if it isn't, then it rounds `.` up.
 - Now the linker closes `.isr_vector` and goes to the `.text :` block where it reads ` >ROM`, so the linker moves `.` to whever it ended off in `.isr_vector`
+
+### LMA vs VMA
+Load Memory Address (LMA) - Address where the data or code physically lives when the device is powered off.
+Virtual Memory Address (VMA) - Address where the section resides and executes during runtime
+
+```
+// LMA vs VMA example
+.data :
+{
+    _sdata = .;
+    *(.data*)
+    _edata = .;
+} > SRAM AT> FLASH
+```
+- The code above says `> SRAM AT> FLASH`. This means the LMA is SRAM and the VMA is flash. 
+
+Note that .data holds initialized global and static variables whose values are known at compile time. Suppose you declare a global variable below.
+
+```
+int delay_ms = 500; // will live in .data
+```
+- When the board is unplugged, the value of 500 is stored permanently in FLASH. (LMA)
+- When power is applied, the startup code should physically copy raw values from FLASH to SRAM.
+- Now, when you decide to modify the variable (`blink_delay = 1000;`), there is no problem because it lives in SRAM which is writeable.
