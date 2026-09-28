@@ -3,8 +3,11 @@
 - [Everything You Never Wanted To Know About Linker Script](https://mcyoung.xyz/2021/06/01/linker-script/)
 - [RM0351 Reference Manual](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
 - [DS10198 STM32L476RG Datasheet](https://www.st.com/resource/en/reference_manual/rm0351-stm32l47xxx-stm32l48xxx-stm32l49xxx-and-stm32l4axxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
+- [ARM Cortex M4 Processor Reference Manual](file:///home/marco/Downloads/arm_cortexm4_processor_trm_100166_0001_04_en.pdf) (Instruction set summary at page 30)
+- [PM0214 STM32 Cortex-M4 Programming Manual](https://www.st.com/resource/en/programming_manual/pm0214-stm32-cortexm4-mcus-and-mpus-programming-manual-stmicroelectronics.pdf)
 ## Notes
-
+- STM32L476RG uses ARM Cortex M4 processors and a 32-bit architecture
+- ARM Cortex-M4 processors have initial SP value at 0x0000 of the vector table and the reset handler at 0x0004 directly after (PM0214, 40)
 ### Flash
 - Flash Memory Region starts at 0x0800 0000 and ends at 0x0810 0000 (RM0351, 77) 
 - The G in STM32L476RG means 1 MB flash (DS10198, 261) so the below info is assuming 1 MB dual bank flash organization. This sort of information is usually in the "Ordering Information" section
