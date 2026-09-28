@@ -2,10 +2,11 @@ Second-stage bootloader with signed A/B slots.
 
 ## Status
 - [x] [[Toolchain and blinky]]
-- [ ] [[Replace linker script and startup]]
+- [x] [[Replace linker script and startup]]
 - [ ] [[Minimal bootloader]]
 
 ## Log
+Finished minimal linker script and startup code
 
 
 ## Articles
